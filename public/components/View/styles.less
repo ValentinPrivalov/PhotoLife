@@ -1,0 +1,28 @@
+.box-shadow() {
+  box-shadow: 0 0 3px 0 #555;
+}
+
+section {
+  padding: 10%;
+  canvas {
+    width: 100%;
+    .box-shadow;
+  }
+  input[type='file'] {
+    display: none;
+  }
+  label {
+    display: block;
+    padding: 1%;
+    width: 20%;
+    background-color: #8d0000;
+    color: #fff;
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: 0.2s filter;
+    .box-shadow;
+    &:hover {
+      filter: brightness(1.2);
+    }
+  }
+}
