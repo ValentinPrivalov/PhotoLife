@@ -1,25 +1,46 @@
 import React from 'react';
 import './styles.less';
 
+let ctx = null;
+
 export default class View extends React.Component {
 
     constructor() {
         super();
-        this.image = null;
+        this.image = new Image();
+
+
+        this.image.src = '/img/photo1.jpg';
+        this.image.addEventListener('load', () => {
+            this.renderCanvas();
+        });
+
         this.canvas = null;
         this.state = {
             imageDownloadHref: '',
-            imageDownloadName: ''
+            imageDownloadName: '',
+
+            // filters
+            grayscale: 0,
+            contrast: 100,
         };
     };
 
-    renderCanvas(image) {
-        const ctx = this.canvas.getContext('2d');
-        this.image = image;
+    componentDidMount() {
+        ctx = this.canvas.getContext('2d');
+    }
 
-        this.canvas.width = image.width;
-        this.canvas.height = image.height;
-        ctx.drawImage(this.image, 0, 0);
+    renderCanvas() {
+        if (this.image) {
+            console.log('drawImage');
+            this.canvas.width = this.image.width;
+            this.canvas.height = this.image.height;
+            ctx.filter = `
+                grayscale(${this.state.grayscale}%)
+                contrast(${this.state.contrast}%)
+            `;
+            ctx.drawImage(this.image, 0, 0);
+        }
     }
 
     load = event => {
@@ -43,12 +64,11 @@ export default class View extends React.Component {
         // FileReader support
         if (FileReader && image) {
             let reader = new FileReader();
-            reader.addEventListener('load', () => {
-                let image = new Image();
-                image.src = reader.result;
-                image.addEventListener('load', () => this.renderCanvas(image));
-            });
             reader.readAsDataURL(image);
+            reader.addEventListener('load', () => {
+                this.image.src = reader.result;
+                this.image.addEventListener('load', () => this.renderCanvas());
+            });
         }
     };
 
@@ -57,6 +77,11 @@ export default class View extends React.Component {
             imageDownloadHref: this.canvas.toDataURL('image/jpeg'),
             imageDownloadName: 'photo-life.jpg'
         });
+    };
+
+    setFilter = (filterName, value) => {
+        this.setState({[filterName]: value});
+        this.renderCanvas();
     };
 
     render() {
@@ -68,12 +93,33 @@ export default class View extends React.Component {
                 <header>
                     <input type='file' id='upload-input' accept='.jpg, .jpeg, .png' onChange={this.load}/>
                     <label htmlFor='upload-input'><span>Upload new photo</span></label>
-                    <a href={this.state.imageDownloadHref} onClick={this.savePhoto} download={this.state.imageDownloadName}>
+                    <a
+                        href={this.state.imageDownloadHref}
+                        onClick={this.savePhoto}
+                        download={this.state.imageDownloadName}
+                    >
                         <span>Save</span>
                     </a>
                 </header>
                 <aside>
-
+                    <div className='container'>
+                        <span>Grayscale</span>
+                        <input
+                            type='range'
+                            value={this.state.grayscale}
+                            onChange={event => this.setFilter('grayscale', event.target.value)}
+                        />
+                        <input type='text' value={`${this.state.grayscale}%`} onChange={event => this.setFilter('grayscale', parseInt(event.target.value))}/>
+                        <span>Contrast</span>
+                        <input
+                            type='range'
+                            min='80'
+                            max='120'
+                            value={this.state.contrast}
+                            onChange={event => this.setFilter('contrast', event.target.value)}
+                        />
+                        <input type='text' value={`${this.state.contrast}%`} onChange={event => this.setFilter('contrast', parseInt(event.target.value))}/>
+                    </div>
                 </aside>
                 <section onDrop={this.drop} onDragOver={this.allowDrop}>
                     <canvas width='400' height='300' ref={canvas => canvas && (this.canvas = canvas)}/>
