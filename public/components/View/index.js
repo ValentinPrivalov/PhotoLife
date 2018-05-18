@@ -109,7 +109,7 @@ export default class View extends React.Component {
                             value={this.state.grayscale}
                             onChange={event => this.setFilter('grayscale', event.target.value)}
                         />
-                        <input type='text' value={`${this.state.grayscale}%`} onChange={event => this.setFilter('grayscale', parseInt(event.target.value))}/>
+                        <span>{`${this.state.grayscale}%`}</span>
                         <span>Contrast</span>
                         <input
                             type='range'
@@ -118,7 +118,7 @@ export default class View extends React.Component {
                             value={this.state.contrast}
                             onChange={event => this.setFilter('contrast', event.target.value)}
                         />
-                        <input type='text' value={`${this.state.contrast}%`} onChange={event => this.setFilter('contrast', parseInt(event.target.value))}/>
+                        <span>{`${this.state.contrast / 100}`}</span>
                     </div>
                 </aside>
                 <section onDrop={this.drop} onDragOver={this.allowDrop}>
