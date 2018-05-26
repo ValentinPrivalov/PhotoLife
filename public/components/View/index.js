@@ -1,106 +1,105 @@
 import React from 'react';
+import 'pixi.js';
 import './styles.less';
 
-let ctx = null;
+const fileName = 'photo-life.jpg';
+const imgExt = '.jpg, .jpeg, .png';
+const baseCanvasSize = {width: 400, height: 300};
 
 export default class View extends React.Component {
-
     constructor() {
         super();
-        this.image = new Image();
 
+        // previous download
+        let image = new Image();
+        image.src = '/img/photo1.jpg';
+        image.addEventListener('load', () => this.renderPhoto(image));
 
-        this.image.src = '/img/photo1.jpg';
-        this.image.addEventListener('load', () => {
-            this.renderCanvas();
-        });
-
-        this.canvas = null;
         this.state = {
-            imageDownloadHref: '',
-            imageDownloadName: '',
-
             // filters
             grayscale: 0,
             contrast: 100,
         };
     };
 
+    /**
+     * Create PIXI.Application
+     */
     componentDidMount() {
-        ctx = this.canvas.getContext('2d');
+        this.renderer = PIXI.autoDetectRenderer(baseCanvasSize.width, baseCanvasSize.height);
+        this.renderer.view.id = 'photo';
+        this.stage = new PIXI.Container();
+        this.drawStage();
+
+        document.getElementById('image').appendChild(this.renderer.view);
     }
 
-    renderCanvas() {
-        if (this.image) {
-            console.log('drawImage');
-            this.canvas.width = this.image.width;
-            this.canvas.height = this.image.height;
-            ctx.filter = `
-                grayscale(${this.state.grayscale}%)
-                contrast(${this.state.contrast}%)
-            `;
-            ctx.drawImage(this.image, 0, 0);
-        }
+    drawStage() {
+        this.renderer.render(this.stage);
     }
 
-    load = event => {
-        let tgt = event.target || window.event.srcElement;
-        let image = tgt.files[0];
-        this.loadPhoto(image);
-    };
-
-    drop = event => {
-        event.preventDefault();
-        let image = event.dataTransfer.files[0];
-        this.loadPhoto(image);
-    };
-
-    allowDrop = event => {
-        event.preventDefault();
-        console.log('allowDrop');
-    };
-
-    loadPhoto = image => {
+    loadPhoto = imageData => {
         // FileReader support
-        if (FileReader && image) {
+        if (FileReader && imageData) {
             let reader = new FileReader();
-            reader.readAsDataURL(image);
+            reader.readAsDataURL(imageData);
             reader.addEventListener('load', () => {
-                this.image.src = reader.result;
-                this.image.addEventListener('load', () => this.renderCanvas());
+                let image = new Image();
+                image.src = reader.result;
+                image.addEventListener('load', () => this.renderPhoto(image));
             });
         }
     };
 
+    renderPhoto(image) {
+        this.stage.removeChild(this.sprite); // clear
+
+        let base = new PIXI.BaseTexture(image);
+        let texturePhoto = new PIXI.Texture(base);
+        this.sprite = new PIXI.Sprite(texturePhoto);
+
+        this.renderer.resize(image.width, image.height);
+        this.stage.addChild(this.sprite);
+        this.drawStage();
+    }
+
     savePhoto = () => {
-        this.setState({
-            imageDownloadHref: this.canvas.toDataURL('image/jpeg'),
-            imageDownloadName: 'photo-life.jpg'
+        this.renderer.extract.canvas(this.sprite).toBlob(b => {
+            let a = document.createElement('a');
+            document.body.appendChild(a);
+            a.download = fileName;
+            a.href = URL.createObjectURL(b);
+            a.click();
+            a.remove();
         });
     };
 
     setFilter = (filterName, value) => {
         this.setState({[filterName]: value});
-        this.renderCanvas();
     };
 
     render() {
         return (
             <React.Fragment>
+
                 <nav>
                     <img src='./../../img/logo.png' draggable={false}/>
                 </nav>
+
                 <header>
-                    <input type='file' id='upload-input' accept='.jpg, .jpeg, .png' onChange={this.load}/>
+                    <input
+                        id='upload-input'
+                        type='file'
+                        accept={imgExt}
+                        onChange={event => {
+                            event.preventDefault();
+                            this.loadPhoto(event.target.files[0]);
+                        }}
+                    />
                     <label htmlFor='upload-input'><span>Upload new photo</span></label>
-                    <a
-                        href={this.state.imageDownloadHref}
-                        onClick={this.savePhoto}
-                        download={this.state.imageDownloadName}
-                    >
-                        <span>Save</span>
-                    </a>
+                    <button onClick={this.savePhoto}>Save</button>
                 </header>
+
                 <aside>
                     <div className='container'>
                         <span>Grayscale</span>
@@ -121,9 +120,16 @@ export default class View extends React.Component {
                         <span>{`${this.state.contrast / 100}`}</span>
                     </div>
                 </aside>
-                <section onDrop={this.drop} onDragOver={this.allowDrop}>
-                    <canvas width='400' height='300' ref={canvas => canvas && (this.canvas = canvas)}/>
-                </section>
+
+                <section
+                    id='image'
+                    onDrop={event => {
+                        event.preventDefault();
+                        this.loadPhoto(event.dataTransfer.files[0]);
+                    }}
+                    onDragOver={event => event.preventDefault()}
+                />
+
             </React.Fragment>
         );
     }

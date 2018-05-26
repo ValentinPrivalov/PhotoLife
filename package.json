@@ -9,16 +9,17 @@
   "dependencies": {
     "body-parser": "~1.18.2",
     "cookie-parser": "~1.4.3",
+    "css-loader": "^0.28.11",
     "debug": "~2.6.9",
     "express": "~4.15.5",
     "jade": "~1.11.0",
-    "morgan": "~1.9.0",
-    "serve-favicon": "~2.4.5",
-    "css-loader": "^0.28.11",
     "less": "^3.0.4",
     "less-loader": "^4.1.0",
+    "morgan": "~1.9.0",
+    "pixi.js": "^4.8.0",
     "react": "^16.3.2",
     "react-dom": "^16.3.2",
+    "serve-favicon": "~2.4.5",
     "style-loader": "^0.21.0"
   },
   "devDependencies": {
