@@ -1,10 +1,7 @@
 import React from 'react';
 import 'pixi.js';
 import './styles.less';
-
-const fileName = 'photo-life.jpg';
-const imgExt = '.jpg, .jpeg, .png';
-const baseCanvasSize = {width: 400, height: 300};
+import CONSTANTS from './../../constants';
 
 export default class View extends React.Component {
     constructor() {
@@ -26,7 +23,7 @@ export default class View extends React.Component {
      * Create PIXI.Application
      */
     componentDidMount() {
-        this.renderer = PIXI.autoDetectRenderer(baseCanvasSize.width, baseCanvasSize.height);
+        this.renderer = PIXI.autoDetectRenderer(CONSTANTS.baseCanvasSize.width, CONSTANTS.baseCanvasSize.height);
         this.renderer.view.id = 'photo';
         this.stage = new PIXI.Container();
         this.drawStage();
@@ -67,7 +64,7 @@ export default class View extends React.Component {
         this.renderer.extract.canvas(this.sprite).toBlob(b => {
             let a = document.createElement('a');
             document.body.appendChild(a);
-            a.download = fileName;
+            a.download = CONSTANTS.fileName;
             a.href = URL.createObjectURL(b);
             a.click();
             a.remove();
@@ -90,7 +87,7 @@ export default class View extends React.Component {
                     <input
                         id='upload-input'
                         type='file'
-                        accept={imgExt}
+                        accept={CONSTANTS.imgExt}
                         onChange={event => {
                             event.preventDefault();
                             this.loadPhoto(event.target.files[0]);
