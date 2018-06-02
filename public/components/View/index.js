@@ -1,7 +1,16 @@
 import React from 'react';
+import _ from 'underscore';
 import 'pixi.js';
+
 import './styles.less';
 import CONSTANTS from './../../constants';
+
+const
+    Container = PIXI.Container,
+    BaseTexture = PIXI.BaseTexture,
+    Texture = PIXI.Texture,
+    Sprite = PIXI.Sprite,
+    ColorMatrixFilter = PIXI.filters.ColorMatrixFilter;
 
 export default class View extends React.Component {
     constructor() {
@@ -13,15 +22,15 @@ export default class View extends React.Component {
         image.addEventListener('load', () => this.renderPhoto(image));
 
         // Filters collection
-        this.filters = {
-            brightnessFilter: new PIXI.filters.ColorMatrixFilter(),
-            contrastFilter: new PIXI.filters.ColorMatrixFilter()
-        };
+        this.filters = {};
+        CONSTANTS.filters.forEach(name => this.filters[`${name}Filter`] = new ColorMatrixFilter());
+        this.filters.customFilter = new ColorMatrixFilter();
 
         this.state = {
             // input states
             brightness: 100,
             contrast: 0,
+            saturate: 0
         };
     };
 
@@ -29,13 +38,13 @@ export default class View extends React.Component {
      * Create PIXI.Application
      */
     componentDidMount() {
-        this.renderer = PIXI.autoDetectRenderer(CONSTANTS.baseCanvasSize.width, CONSTANTS.baseCanvasSize.height);
+        this.renderer = PIXI.autoDetectRenderer(CONSTANTS.baseCanvasSize.width, CONSTANTS.baseCanvasSize.height, {transparent: true});
         this.renderer.view.id = 'photo';
-        this.stage = new PIXI.Container();
+        this.stage = new Container();
 
         // Bind all filters to stage
         let filters = [];
-        for (let key in this.filters) filters.push(this.filters[key]);
+        _.each(this.filters, filter => filters.push(filter));
         this.stage.filters = filters;
 
         this.drawStage();
@@ -62,9 +71,9 @@ export default class View extends React.Component {
     renderPhoto(image) {
         this.stage.removeChild(this.sprite); // clear previous
 
-        let base = new PIXI.BaseTexture(image);
-        let texturePhoto = new PIXI.Texture(base);
-        this.sprite = new PIXI.Sprite(texturePhoto);
+        let base = new BaseTexture(image);
+        let texturePhoto = new Texture(base);
+        this.sprite = new Sprite(texturePhoto);
 
         this.renderer.resize(image.width, image.height);
         this.stage.addChild(this.sprite);
@@ -82,23 +91,17 @@ export default class View extends React.Component {
         });
     };
 
-    setFilter(filterName, value) {
-        this.setState({[filterName]: value});
+    setPrimaryFilter(filter, value) {
+        this.setState({[filter]: value});
+        this.filters[`${filter}Filter`][filter](value / 100);
+        this.drawStage();
     }
 
-    changeContrast = event => {
-        let value = event.target.value;
-        this.setState({contrast: value});
-        this.filters.contrastFilter.contrast(value / 100);
+    setCustomFilter(name) {
+        this.filters.customFilter.reset();
+        this.filters.customFilter[name](true);
         this.drawStage();
-    };
-
-    changeBrightness = event => {
-        let value = event.target.value;
-        this.setState({brightness: value});
-        this.filters.brightnessFilter.brightness(value / 100);
-        this.drawStage();
-    };
+    }
 
     render() {
         return (
@@ -130,7 +133,7 @@ export default class View extends React.Component {
                             min='80'
                             max='120'
                             value={this.state.brightness}
-                            onChange={this.changeBrightness}
+                            onChange={event => this.setPrimaryFilter('brightness', event.target.value)}
                         />
                         <span>{`${this.state.brightness}%`}</span>
 
@@ -140,9 +143,30 @@ export default class View extends React.Component {
                             min='-30'
                             max='30'
                             value={this.state.contrast}
-                            onChange={this.changeContrast}
+                            onChange={event => this.setPrimaryFilter('contrast', event.target.value)}
                         />
                         <span>{`${this.state.contrast / 100}`}</span>
+
+                        <span>Saturate</span>
+                        <input
+                            type='range'
+                            min='-100'
+                            max='100'
+                            value={this.state.saturate}
+                            onChange={event => this.setPrimaryFilter('saturate', event.target.value)}
+                        />
+                        <span>{`${this.state.saturate}%`}</span>
+
+                        <button onClick={() => {
+                            this.filters.customFilter.reset();
+                            this.drawStage();
+                        }}>RESET
+                        </button>
+                        {CONSTANTS.customFilters.map((name, index) =>
+                            <button key={index} onClick={() => this.setCustomFilter(name)}>
+                                {name.toUpperCase()}
+                            </button>
+                        )}
                     </div>
                 </aside>
 
