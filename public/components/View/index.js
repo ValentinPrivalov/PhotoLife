@@ -81,7 +81,7 @@ export default class View extends React.Component {
     }
 
     savePhoto = () => {
-        this.renderer.extract.canvas(this.sprite).toBlob(b => {
+        this.renderer.extract.canvas(this.stage).toBlob(b => {
             let a = document.createElement('a');
             document.body.appendChild(a);
             a.download = CONSTANTS.fileName;
