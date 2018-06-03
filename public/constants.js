@@ -8,6 +8,7 @@ let CONSTANTS = {
         'saturate'
     ],
     customFilters: [
+        'reset',
         'polaroid',
         'kodachrome',
         'blackAndWhite',

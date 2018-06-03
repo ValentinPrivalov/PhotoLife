@@ -48,7 +48,7 @@ export default class View extends React.Component {
         this.stage.filters = filters;
 
         this.drawStage();
-        document.getElementById('image').appendChild(this.renderer.view);
+        document.getElementById('pixi-app').appendChild(this.renderer.view);
     }
 
     drawStage() {
@@ -78,6 +78,23 @@ export default class View extends React.Component {
         this.renderer.resize(image.width, image.height);
         this.stage.addChild(this.sprite);
         this.drawStage();
+
+        CONSTANTS.customFilters.forEach(name => {
+            let renderer = PIXI.autoDetectRenderer(image.width, image.height, {transparent: true});
+            renderer.view.id = `filter-${name}-canvas`;
+
+            let sprite = new Sprite(texturePhoto);
+
+            let stage = new Container();
+            stage.addChild(sprite);
+
+            let filter = new ColorMatrixFilter();
+            stage.filters = [filter];
+            filter[name]();
+
+            renderer.render(stage);
+            document.getElementById(`filter-${name}`).appendChild(renderer.view);
+        });
     }
 
     savePhoto = () => {
@@ -156,28 +173,26 @@ export default class View extends React.Component {
                             onChange={event => this.setPrimaryFilter('saturate', event.target.value)}
                         />
                         <span>{`${this.state.saturate}%`}</span>
-
-                        <button onClick={() => {
-                            this.filters.customFilter.reset();
-                            this.drawStage();
-                        }}>RESET
-                        </button>
-                        {CONSTANTS.customFilters.map((name, index) =>
-                            <button key={index} onClick={() => this.setCustomFilter(name)}>
-                                {name.toUpperCase()}
-                            </button>
-                        )}
                     </div>
                 </aside>
 
                 <section
-                    id='image'
+                    id='pixi-app'
                     onDrop={event => {
                         event.preventDefault();
                         this.loadPhoto(event.dataTransfer.files[0]);
                     }}
                     onDragOver={event => event.preventDefault()}
                 />
+
+                <footer>
+                    {CONSTANTS.customFilters.map((name, index) =>
+                        <div className='filter' key={index} onClick={() => this.setCustomFilter(name)}>
+                            <span className='filter-name'>{name.toUpperCase()}</span>
+                            <div id={`filter-${name}`} className='filter-view'/>
+                        </div>
+                    )}
+                </footer>
 
             </React.Fragment>
         );
