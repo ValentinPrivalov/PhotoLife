@@ -80,10 +80,13 @@ export default class View extends React.Component {
         this.drawStage();
 
         CONSTANTS.customFilters.forEach(name => {
-            let renderer = PIXI.autoDetectRenderer(image.width, image.height, {transparent: true});
+            let scale = CONSTANTS.exampleCanvasScale;
+
+            let renderer = new PIXI.CanvasRenderer(image.width * scale, image.height * scale, {transparent: true});
             renderer.view.id = `filter-${name}-canvas`;
 
             let sprite = new Sprite(texturePhoto);
+            sprite.scale.x = sprite.scale.y = scale;
 
             let stage = new Container();
             stage.addChild(sprite);
@@ -93,7 +96,12 @@ export default class View extends React.Component {
             filter[name]();
 
             renderer.render(stage);
-            document.getElementById(`filter-${name}`).appendChild(renderer.view);
+
+            let node = document.getElementById(`filter-${name}`);
+            while (node.hasChildNodes()) {
+                node.removeChild(node.lastChild);
+            }
+            node.appendChild(renderer.view);
         });
     }
 
