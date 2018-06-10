@@ -1,0 +1,24 @@
+@import './../View/styles';
+
+aside {
+  grid-area: aside;
+  background-color: @base;
+  .container {
+    display: grid;
+    grid-template-columns: 40% 40% 20%;
+    span {
+      display: block;
+      padding: 5px 10px;
+      color: #fff;
+      font-size: 18px;
+    }
+    input[type='range'] {
+      display: block;
+    }
+    input[type='text'] {
+      color: #fff;
+      background-color: rgba(0, 0, 0, 0);
+      border: none;
+    }
+  }
+}

@@ -5,6 +5,9 @@ import 'pixi.js';
 import './styles.less';
 import CONSTANTS from './../../constants';
 
+import Header from './../header/index';
+import Aside from './../aside/index';
+
 const
     Container = PIXI.Container,
     BaseTexture = PIXI.BaseTexture,
@@ -116,17 +119,17 @@ export default class View extends React.Component {
         });
     };
 
-    setPrimaryFilter(filter, value) {
+    setPrimaryFilter = (filter, value) => {
         this.setState({[filter]: value});
         this.filters[`${filter}Filter`][filter](value / 100);
         this.drawStage();
-    }
+    };
 
-    setCustomFilter(name) {
+    setCustomFilter = name => {
         this.filters.customFilter.reset();
         this.filters.customFilter[name](true);
         this.drawStage();
-    }
+    };
 
     render() {
         return (
@@ -136,53 +139,9 @@ export default class View extends React.Component {
                     <img src='./../../img/logo.png' draggable={false}/>
                 </nav>
 
-                <header>
-                    <input
-                        id='upload-input'
-                        type='file'
-                        accept={CONSTANTS.imgExt}
-                        onChange={event => {
-                            event.preventDefault();
-                            this.loadPhoto(event.target.files[0]);
-                        }}
-                    />
-                    <label htmlFor='upload-input'><span>Upload new photo</span></label>
-                    <button onClick={this.savePhoto}>Save</button>
-                </header>
+                <Header imgExt={CONSTANTS.imgExt} handleClick={this.savePhoto}/>
 
-                <aside>
-                    <div className='container'>
-                        <span>Brightness</span>
-                        <input
-                            type='range'
-                            min='80'
-                            max='120'
-                            value={this.state.brightness}
-                            onChange={event => this.setPrimaryFilter('brightness', event.target.value)}
-                        />
-                        <span>{`${this.state.brightness}%`}</span>
-
-                        <span>Contrast</span>
-                        <input
-                            type='range'
-                            min='-30'
-                            max='30'
-                            value={this.state.contrast}
-                            onChange={event => this.setPrimaryFilter('contrast', event.target.value)}
-                        />
-                        <span>{`${this.state.contrast / 100}`}</span>
-
-                        <span>Saturate</span>
-                        <input
-                            type='range'
-                            min='-100'
-                            max='100'
-                            value={this.state.saturate}
-                            onChange={event => this.setPrimaryFilter('saturate', event.target.value)}
-                        />
-                        <span>{`${this.state.saturate}%`}</span>
-                    </div>
-                </aside>
+                <Aside state={this.state} handleChange={this.setPrimaryFilter}/>
 
                 <section
                     id='pixi-app'
