@@ -9,3 +9,40 @@ body {
   height: 100vh;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
+
+@base: #001a3a;
+@red: #8d0000;
+
+.box-shadow() {
+  box-shadow: 0 0 3px 1px lighten(@base, 10%);
+}
+
+.red-button() {
+  display: inline-block;
+  height: 100%;
+  padding: 3px 10px;
+  color: #fff;
+  background-color: @red;
+  font-size: 18px;
+  border: none;
+  border-radius: 1px;
+  cursor: pointer;
+  text-shadow: 0 0 5px #000;
+  text-decoration: none;
+  transition: 0.2s filter;
+  .box-shadow;
+  &:hover {
+    filter: brightness(1.2);
+  }
+  &:active {
+    filter: brightness(1.5);
+  }
+  &:focus {
+    outline: 0;
+  }
+  span {
+    display: flex;
+    height: 100%;
+    align-items: center;
+  }
+}

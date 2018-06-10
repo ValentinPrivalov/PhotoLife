@@ -29,12 +29,13 @@ export default class View extends React.Component {
         CONSTANTS.filters.forEach(name => this.filters[`${name}Filter`] = new ColorMatrixFilter());
         this.filters.customFilter = new ColorMatrixFilter();
 
-        this.state = {
+        this.startState = {
             // input states
             brightness: 100,
             contrast: 0,
             saturate: 0
         };
+        this.state = this.startState;
     };
 
     /**
@@ -58,7 +59,7 @@ export default class View extends React.Component {
         this.renderer.render(this.stage);
     }
 
-    loadPhoto(imageData) {
+    loadPhoto = imageData => {
         // FileReader support
         if (FileReader && imageData) {
             let reader = new FileReader();
@@ -69,7 +70,7 @@ export default class View extends React.Component {
                 image.addEventListener('load', () => this.renderPhoto(image));
             });
         }
-    }
+    };
 
     renderPhoto(image) {
         this.stage.removeChild(this.sprite); // clear previous
@@ -81,31 +82,6 @@ export default class View extends React.Component {
         this.renderer.resize(image.width, image.height);
         this.stage.addChild(this.sprite);
         this.drawStage();
-
-        CONSTANTS.customFilters.forEach(name => {
-            let scale = CONSTANTS.exampleCanvasScale;
-
-            let renderer = new PIXI.CanvasRenderer(image.width * scale, image.height * scale, {transparent: true});
-            renderer.view.id = `filter-${name}-canvas`;
-
-            let sprite = new Sprite(texturePhoto);
-            sprite.scale.x = sprite.scale.y = scale;
-
-            let stage = new Container();
-            stage.addChild(sprite);
-
-            let filter = new ColorMatrixFilter();
-            stage.filters = [filter];
-            filter[name]();
-
-            renderer.render(stage);
-
-            let node = document.getElementById(`filter-${name}`);
-            while (node.hasChildNodes()) {
-                node.removeChild(node.lastChild);
-            }
-            node.appendChild(renderer.view);
-        });
     }
 
     savePhoto = () => {
@@ -131,6 +107,10 @@ export default class View extends React.Component {
         this.drawStage();
     };
 
+    resetPrimaryFilters = () => {
+        _.each(this.startState, (value, key) => this.setPrimaryFilter(key, value));
+    };
+
     render() {
         return (
             <React.Fragment>
@@ -139,9 +119,19 @@ export default class View extends React.Component {
                     <img src='./../../img/logo.png' draggable={false}/>
                 </nav>
 
-                <Header imgExt={CONSTANTS.imgExt} handleClick={this.savePhoto}/>
+                <Header
+                    imgExt={CONSTANTS.imgExt}
+                    savePhoto={this.savePhoto}
+                    loadPhoto={this.loadPhoto}
+                />
 
-                <Aside state={this.state} handleChange={this.setPrimaryFilter}/>
+                <Aside
+                    state={this.state}
+                    setPrimaryFilter={this.setPrimaryFilter}
+                    setCustomFilter={this.setCustomFilter}
+                    customFilters={CONSTANTS.customFilters}
+                    resetPrimaryFilters={this.resetPrimaryFilters}
+                />
 
                 <section
                     id='pixi-app'
@@ -151,15 +141,6 @@ export default class View extends React.Component {
                     }}
                     onDragOver={event => event.preventDefault()}
                 />
-
-                <footer>
-                    {CONSTANTS.customFilters.map((name, index) =>
-                        <div className='filter' key={index} onClick={() => this.setCustomFilter(name)}>
-                            <span className='filter-name'>{name.toUpperCase()}</span>
-                            <div id={`filter-${name}`} className='filter-view'/>
-                        </div>
-                    )}
-                </footer>
 
             </React.Fragment>
         );
