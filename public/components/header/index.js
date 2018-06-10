@@ -2,7 +2,7 @@ import React from 'react';
 import './styles.less';
 
 export default function Header(props) {
-    let {imgExt, savePhoto, loadPhoto} = props;
+    let {imgExt, savePhoto, loadPhoto, activeSettings} = props;
 
     return (
         <header>
@@ -16,7 +16,7 @@ export default function Header(props) {
                 }}
             />
             <label htmlFor='upload-input'><span>Upload new photo</span></label>
-            <button onClick={savePhoto}>Save</button>
+            {activeSettings && <button onClick={savePhoto}>Save</button>}
         </header>
     );
 }

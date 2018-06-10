@@ -20,22 +20,25 @@ export default class View extends React.Component {
         super();
 
         // previous download
-        let image = new Image();
-        image.src = '/img/photo1.jpg';
-        image.addEventListener('load', () => this.renderPhoto(image));
+        //let image = new Image();
+        //image.src = '/img/photo1.jpg';
+        //image.addEventListener('load', () => this.renderPhoto(image));
 
         // Filters collection
         this.filters = {};
         CONSTANTS.filters.forEach(name => this.filters[`${name}Filter`] = new ColorMatrixFilter());
         this.filters.customFilter = new ColorMatrixFilter();
 
-        this.startState = {
+        this.startFiltersState = {
             // input states
             brightness: 100,
             contrast: 0,
             saturate: 0
         };
-        this.state = this.startState;
+        this.state = {
+            activeSettings: false,
+            ...this.startFiltersState
+        };
     };
 
     /**
@@ -82,6 +85,8 @@ export default class View extends React.Component {
         this.renderer.resize(image.width, image.height);
         this.stage.addChild(this.sprite);
         this.drawStage();
+
+        this.setState({activeSettings: true});
     }
 
     savePhoto = () => {
@@ -108,7 +113,7 @@ export default class View extends React.Component {
     };
 
     resetPrimaryFilters = () => {
-        _.each(this.startState, (value, key) => this.setPrimaryFilter(key, value));
+        _.each(this.startFiltersState, (value, key) => this.setPrimaryFilter(key, value));
     };
 
     render() {
@@ -123,15 +128,16 @@ export default class View extends React.Component {
                     imgExt={CONSTANTS.imgExt}
                     savePhoto={this.savePhoto}
                     loadPhoto={this.loadPhoto}
+                    activeSettings={this.state.activeSettings}
                 />
 
-                <Aside
+                {this.state.activeSettings && <Aside
                     state={this.state}
                     setPrimaryFilter={this.setPrimaryFilter}
                     setCustomFilter={this.setCustomFilter}
                     customFilters={CONSTANTS.customFilters}
                     resetPrimaryFilters={this.resetPrimaryFilters}
-                />
+                />}
 
                 <section
                     id='pixi-app'
